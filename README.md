@@ -58,7 +58,10 @@ the command list itself, so the list cannot go stale.
 
 - **Sheets.** Several open at once, each a cloud in the left column, drawn by
   the same generator the whole family uses and seeded so one keeps its own shape.
-  A dot appears when there is unsaved work; middle-click closes one.
+  **Drag one up or down** to reorder them, and **close one from the cloud
+  itself** — the × shares its corner with the unsaved dot, since you never want
+  both at once. Middle-click closes one too, and a sheet with unsaved work asks
+  before it goes.
 - **Undo that belongs to the sheet.** A run of typing collapses into one step,
   an operation is always its own step, and switching sheets and back does not
   lose the history — which is the one thing a plain text box cannot do.
@@ -172,7 +175,7 @@ Honestly, so nobody goes looking:
 
 ## Testing
 
-Four suites, 133 assertions, run the way the whole family runs them — as scripts
+Five suites, 153 assertions, run the way the whole family runs them — as scripts
 the program's own runtime executes. They live outside the repository; Stratus's
 `docs/TESTING.md` is the pattern.
 
@@ -181,6 +184,7 @@ the program's own runtime executes. They live outside the repository; Stratus's
 | `editstest.js` | 52 — the text operations and the undo history, in plain node |
 | `filestest.js` | 16 — encodings and line endings, round-tripped |
 | `nimbusfull.js` | 60 — the editor end to end, Smart Mode, and the settings page |
+| `sheetstest.js` | 20 — closing and dragging sheets, with a real mouse as well as a dispatched one |
 | `rulecheck.js` | 5 — the numbers keeping step with the lines |
 
 ## Licence

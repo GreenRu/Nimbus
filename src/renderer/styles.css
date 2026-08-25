@@ -660,3 +660,83 @@ button {
 
 body.no-sidebar .sidebar { display: none; }
 body.full-screen .drawer { display: none; }
+
+/* ---------- closing a sheet, and carrying one somewhere else ---------- */
+
+/* Centred on the cloud's body rather than riding the text baseline.
+
+   The child selector is load-bearing: `.sheet > *:not(.lobe)` above sets
+   position relative on every child and outranks a plain `.sheet-close`, which
+   would leave the button in the flex flow with `top: 50%` shoving it below the
+   centre line. Stratus learned this one the hard way; it is copied, not
+   rediscovered. */
+.sheet > .sheet-close {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  padding: 3px;
+  border-radius: 50%;
+  color: var(--text);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease),
+    transform var(--t-mid) var(--spring);
+}
+
+.sheet-close svg { width: 100%; height: 100%; }
+
+/* Hovering the sheet is what reveals it, and the unsaved dot steps aside while
+   it is there: they share the corner because you never want both at once. */
+.sheet:hover .sheet-close { opacity: 0.55; }
+.sheet:hover .sheet-dot { opacity: 0; }
+
+.sheet-close:hover {
+  opacity: 1;
+  background: rgba(127, 110, 100, 0.22);
+  transform: translateY(-50%) scale(1.18) rotate(90deg);
+}
+
+[data-theme="dusk"] .sheet-close:hover { background: rgba(255, 255, 255, 0.16); }
+.sheet-close:active { transform: translateY(-50%) scale(0.9) rotate(90deg); }
+
+/* Picked up: out of the flow, following the pointer. */
+.sheet.dragging {
+  position: fixed;
+  z-index: 30;
+  margin: 0;
+  pointer-events: none;
+  cursor: grabbing;
+  transform: scale(1.04) rotate(-1.4deg);
+  filter: drop-shadow(0 14px 22px rgba(96, 48, 32, 0.34));
+  animation: none;   /* the entrance animation would fight the transform */
+  transition: transform var(--t-mid) var(--spring), filter var(--t-mid) var(--ease);
+}
+
+[data-theme="dusk"] .sheet.dragging { filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.5)); }
+
+/* Let go: it travels to the gap rather than appearing in it. */
+.sheet.landing {
+  transition: top 180ms var(--ease), left 180ms var(--ease),
+    transform 180ms var(--ease), filter 180ms var(--ease);
+  transform: none;
+  filter: drop-shadow(0 3px 6px rgba(96, 48, 32, 0.26));
+}
+
+/* The space it will drop into. The sheets around it move by the strip's own
+   layout, so nothing has to be told where to go. */
+.sheet-gap {
+  flex: 0 0 auto;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--field-line);
+  background: var(--hover);
+  opacity: 0.75;
+}
+
+body.dragging-cloud { cursor: grabbing; }
+body.dragging-cloud .sheet-close { opacity: 0; }

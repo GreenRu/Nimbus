@@ -101,7 +101,35 @@ function makeSheet({ name = 'untitled', path = '', text = '', encoding = 'utf8',
 
 const isDirty = (sheet) => sheet && sheet.text !== sheet.saved;
 
-function renderSheets() {
+const CLOSE_ICON =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" ' +
+  'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+/**
+ * What the strip would look like right now.
+ *
+ * Redrawing it on every keystroke throws away the hover the pointer is sitting
+ * in - which takes the close button out from under it mid-click - and re-rolls
+ * every cloud for nothing. So it is only rebuilt when something it draws has
+ * actually changed.
+ */
+function stripSignature() {
+  return state.sheets
+    .map((s) => [s.id, s.name, isDirty(s) ? 'd' : '', s.id === state.activeId ? 'a' : ''].join(':'))
+    .join('|');
+}
+
+let lastStrip = null;
+
+function renderSheets(force = false) {
+  // Mid-drag the strip belongs to the pointer: rebuilding it would drop the
+  // cloud being carried.
+  if (drag && drag.active) return;
+
+  const signature = stripSignature();
+  if (!force && signature === lastStrip) return;
+  lastStrip = signature;
+
   el.list.replaceChildren();
 
   for (const sheet of state.sheets) {
@@ -115,12 +143,28 @@ function renderSheets() {
     name.className = 'sheet-name';
     name.textContent = sheet.name;
 
+    // The dot and the close share a corner: the dot says there is unsaved work,
+    // and hovering swaps it for the way to close the sheet. Two things in one
+    // place, because they are never both what you want at once.
     const dot = document.createElement('span');
     dot.className = 'sheet-dot';
     dot.title = 'Not saved yet';
 
-    button.append(name, dot);
-    button.addEventListener('click', () => show(sheet.id));
+    const close = document.createElement('span');
+    close.className = 'sheet-close';
+    close.setAttribute('role', 'button');
+    close.title = 'Close ' + sheet.name + ' (Ctrl+W)';
+    close.innerHTML = CLOSE_ICON;
+    close.addEventListener('click', (event) => {
+      event.stopPropagation();
+      closeSheet(sheet.id);
+    });
+
+    button.append(name, dot, close);
+    button.addEventListener('click', (event) => {
+      if (event.target.closest('.sheet-close')) return;
+      show(sheet.id);
+    });
     button.addEventListener('auxclick', (event) => {
       if (event.button === 1) closeSheet(sheet.id);   // middle click, as everywhere
     });
@@ -142,6 +186,110 @@ function renderSheets() {
 
   const n = state.sheets.length;
   el.foot.textContent = `${n} sheet${n === 1 ? '' : 's'}`;
+}
+
+/* ------------------------------------------------- carrying one to a new place */
+
+/**
+ * Dragging a sheet up or down the sky.
+ *
+ * The same way Stratus moves its clouds, and deliberately so: the cloud comes
+ * out of the flow and follows the pointer, and a gap of its own size takes its
+ * place. The gap is a real element, so the sheets around it move by the strip's
+ * own layout rather than by anything here working out where they should go.
+ */
+let drag = null;
+
+el.list.addEventListener('pointerdown', (event) => {
+  if (event.button !== 0) return;
+  const button = event.target.closest('.sheet');
+  if (!button || event.target.closest('.sheet-close')) return;
+
+  drag = {
+    id: Number(button.dataset.id),
+    el: button,
+    startY: event.clientY,
+    // Where in the cloud it was taken hold of, so it does not jump on lift.
+    grabbedAt: event.clientY - button.getBoundingClientRect().top,
+    active: false
+  };
+});
+
+function liftSheet(event) {
+  const box = drag.el.getBoundingClientRect();
+
+  const gap = document.createElement('div');
+  gap.className = 'sheet-gap';
+  gap.style.height = box.height + 'px';
+  el.list.insertBefore(gap, drag.el);
+
+  drag.gap = gap;
+  drag.active = true;
+  drag.el.classList.add('dragging');
+  drag.el.style.width = box.width + 'px';
+  drag.el.style.left = box.left + 'px';
+  drag.el.style.top = (event.clientY - drag.grabbedAt) + 'px';
+  document.body.classList.add('dragging-cloud');
+}
+
+window.addEventListener('pointermove', (event) => {
+  if (!drag) return;
+  if (!drag.active) {
+    // A few pixels of slack, so a click on a sheet is not a tiny drag.
+    if (Math.abs(event.clientY - drag.startY) < 6) return;
+    liftSheet(event);
+  }
+
+  drag.el.style.top = (event.clientY - drag.grabbedAt) + 'px';
+
+  // Where it would land: the first sheet whose middle is below the pointer.
+  const others = [...el.list.children].filter((n) => n !== drag.el && n !== drag.gap);
+  const before = others.find((n) => {
+    const box = n.getBoundingClientRect();
+    return event.clientY < box.top + box.height / 2;
+  });
+
+  if (before) el.list.insertBefore(drag.gap, before);
+  else el.list.appendChild(drag.gap);
+});
+
+window.addEventListener('pointerup', () => {
+  if (!drag) return;
+  const held = drag;
+  drag = null;
+  if (!held.active) return;
+
+  const index = [...el.list.children].filter((n) => n !== held.el).indexOf(held.gap);
+
+  // Settle into the gap before letting go of it, so the cloud arrives rather
+  // than teleports.
+  const landing = held.gap.getBoundingClientRect();
+  held.el.classList.add('landing');
+  held.el.style.top = landing.top + 'px';
+  held.el.style.left = landing.left + 'px';
+
+  const release = () => {
+    held.el.classList.remove('dragging', 'landing');
+    held.el.style.width = '';
+    held.el.style.left = '';
+    held.el.style.top = '';
+    held.gap.remove();
+    document.body.classList.remove('dragging-cloud');
+
+    if (index >= 0) moveSheet(held.id, index);
+  };
+
+  held.el.addEventListener('transitionend', release, { once: true });
+  setTimeout(release, 260);
+});
+
+/** Put a sheet at a new place in the order. */
+function moveSheet(id, index) {
+  const at = state.sheets.findIndex((s) => s.id === id);
+  if (at === -1) return;
+  const [sheet] = state.sheets.splice(at, 1);
+  state.sheets.splice(Math.max(0, Math.min(index, state.sheets.length)), 0, sheet);
+  renderSheets(true);
 }
 
 /** Keep whatever is on the paper before the paper is used for something else. */
@@ -202,7 +350,7 @@ async function closeSheet(id) {
   if (state.activeId === id) {
     state.activeId = (state.sheets[at] || state.sheets[state.sheets.length - 1]).id;
   }
-  draw();
+  draw(true);
   return true;
 }
 
@@ -453,7 +601,12 @@ function renderLineGlow(line) {
   el.marks.appendChild(glow);
 }
 
-function draw() {
+/**
+ * @param {boolean} [force] redraw the strip even if it looks unchanged - for a
+ *   reorder, where the sheets are the same sheets in a different order and the
+ *   signature alone cannot tell.
+ */
+function draw(force = false) {
   const sheet = active();
   el.paper.value = sheet ? sheet.text : '';
   if (sheet) {
@@ -461,7 +614,7 @@ function draw() {
     el.paper.selectionEnd = sheet.sel.end;
     el.paper.scrollTop = sheet.scroll;
   }
-  renderSheets();
+  renderSheets(force);
   renderRule();
   renderStatus();
   refreshFind();
