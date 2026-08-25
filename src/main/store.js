@@ -13,10 +13,28 @@ const path = require('path');
  * costs somebody their work.
  */
 const DEFAULTS = {
-  theme: 'sunset',                    // 'sunset' or 'dusk', or a plugin's own
+  theme: 'sunset',                    // 'sunset', 'dusk', or a plugin's own
   window: { width: 1100, height: 760 },
+
+  /*
+   * Smart Mode. Off, and the program is a text editor: sheets, words, lines.
+   * On, and the technical layer appears - encodings, line endings, the sharper
+   * find options. Nothing is ever taken away by leaving it off; it is only kept
+   * out of the way of somebody who did not ask for it.
+   */
+  smartMode: false,
+
   wrap: true,
+  lineNumbers: true,
   tabSize: 2,
+  useTabs: false,
+  autoIndent: true,
+  autoClose: true,
+  fontSize: 13,
+
+  autosave: false,
+  restoreSession: true,
+  session: [],                        // what was open, to put back next launch
   recent: [],                         // paths, newest first
   enabledPlugins: []                  // opt-in, always
 };

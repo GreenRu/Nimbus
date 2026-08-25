@@ -1,0 +1,204 @@
+/* ============================================================
+   Nimbus - the program's own pages
+
+   The same sky, the same cards, the same two palettes as the editor. A page is
+   a window of its own, so it repeats the variables rather than sharing a
+   stylesheet with the interface; keep them in step with
+   src/renderer/styles.css, which is where they are decided.
+   ============================================================ */
+
+:root {
+  --sky-top: #efa079;
+  --sky-bottom: #f9d6b6;
+  --card: #fffaf5;
+  --card-line: rgba(74, 43, 51, 0.10);
+  --text: #4a2b33;
+  --text-dim: #8f6b64;
+  --text-on-sky: #5b3229;
+  --field: #fffaf5;
+  --field-line: rgba(74, 43, 51, 0.16);
+  --hover: rgba(255, 255, 255, 0.55);
+  --accent: #d4663c;
+  --danger: #c2453f;
+  --shadow-card: 0 10px 30px rgba(96, 48, 32, 0.18);
+
+  --ui-font: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --brand-font: "Comfortaa", var(--ui-font);
+  --text-font: "Cascadia Code", "Consolas", ui-monospace, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-theme="dusk"] {
+  --sky-top: #2b2340;
+  --sky-bottom: #120e1c;
+  --card: #241d38;
+  --card-line: rgba(255, 255, 255, 0.08);
+  --text: #ede6f6;
+  --text-dim: #a294bd;
+  --text-on-sky: #d6cbe8;
+  --field: #1a1429;
+  --field-line: rgba(255, 255, 255, 0.14);
+  --hover: rgba(255, 255, 255, 0.10);
+  --accent: #e0885f;
+  --danger: #ff6b6b;
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.40);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  min-height: 100%;
+  margin: 0;
+  font-family: var(--ui-font);
+  color: var(--text);
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+  background-attachment: fixed;
+  transition: background 380ms var(--ease), color 380ms var(--ease);
+}
+
+button { border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
+
+.page { max-width: 620px; margin: 0 auto; padding: 52px 26px 60px; }
+
+.page-title {
+  margin: 0;
+  font-family: var(--brand-font);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-on-sky);
+}
+
+.page-sub { margin: 6px 0 26px; font-size: 13px; color: var(--text-on-sky); opacity: 0.85; }
+
+.card {
+  margin-bottom: 18px;
+  padding: 6px 20px 14px;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+
+.card.highlight { outline: 1.5px solid var(--accent); outline-offset: -1.5px; }
+
+.card h2 {
+  margin: 16px 0 10px;
+  font-family: var(--brand-font);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.note { margin: 0 0 12px; font-size: 12px; line-height: 1.55; color: var(--text-dim); }
+.note code { font-family: var(--text-font); font-size: 11.5px; }
+.note.problem { color: var(--danger); }
+.note.problem:empty { display: none; }
+
+/* ---------- one setting ---------- */
+
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 11px 0;
+  border-top: 1px solid var(--card-line);
+}
+
+.card h2 + .setting { border-top: 0; }
+.setting .label { flex: 1 1 auto; min-width: 0; }
+.setting .label b { display: block; font-size: 13.5px; font-weight: 600; }
+.setting .label small { display: block; margin-top: 3px; font-size: 11.5px; line-height: 1.5; color: var(--text-dim); }
+.setting .control { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; }
+.setting.smart-only[hidden] { display: none; }
+
+select {
+  height: 32px;
+  min-width: 130px;
+  padding: 0 10px;
+  border: 1px solid var(--field-line);
+  border-radius: 10px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+select:focus { border-color: var(--accent); }
+
+input[type="range"] { width: 130px; accent-color: var(--accent); }
+.value { min-width: 34px; font-size: 12.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+/* ---------- a switch ---------- */
+
+.toggle { position: relative; display: inline-block; width: 42px; height: 24px; }
+.toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.toggle span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--field-line);
+  transition: background 160ms var(--ease);
+}
+
+.toggle span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toggle input:checked + span { background: var(--accent); }
+.toggle input:checked + span::after { transform: translateX(18px); }
+.toggle input:disabled + span { opacity: 0.45; }
+
+/* ---------- what Smart Mode adds ---------- */
+
+.smart-list { padding: 4px 0 12px; }
+
+.smart-list div {
+  display: flex;
+  gap: 9px;
+  padding: 3px 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.smart-list div::before { content: "+"; color: var(--accent); font-weight: 700; }
+
+/* ---------- plugins ---------- */
+
+.rows { margin-bottom: 10px; }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-top: 1px solid var(--card-line);
+  font-size: 13px;
+}
+
+.rows .row:first-child { border-top: 0; }
+.row .grow { flex: 1 1 auto; min-width: 0; }
+.row .grow b { display: block; font-weight: 600; }
+.row .grow small { display: block; margin-top: 2px; font-size: 11.5px; color: var(--text-dim); }
+.row .refused { color: var(--danger); }
+.row-buttons { display: flex; gap: 8px; padding: 4px 0 10px; }
+
+button.ghost {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+
+button.ghost:hover { background: var(--hover); color: var(--text); }

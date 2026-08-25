@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self';" />
+    <title>Settings</title>
+    <link rel="stylesheet" href="./page.css" />
+  </head>
+  <body>
+    <main class="page">
+      <h1 class="page-title">Settings</h1>
+      <p class="page-sub">Nimbus keeps these on this computer. Nothing here leaves it.</p>
+
+      <section class="card">
+        <h2>How it looks</h2>
+
+        <div class="setting">
+          <div class="label">
+            <b>Theme</b>
+            <small>Sunset is the light one. Dusk is the same colours after dark.</small>
+          </div>
+          <div class="control"><select id="theme"></select></div>
+        </div>
+
+        <div class="setting">
+          <div class="label">
+            <b>Text size</b>
+            <small>Ctrl and the plus or minus keys do this too, while you are typing.</small>
+          </div>
+          <div class="control">
+            <input type="range" id="font-size" min="9" max="28" step="1" />
+            <span class="value" id="font-size-value"></span>
+          </div>
+        </div>
+
+        <div class="setting">
+          <div class="label">
+            <b>Line numbers</b>
+            <small>Down the left-hand side of the text.</small>
+          </div>
+          <div class="control">
+            <label class="toggle"><input type="checkbox" id="line-numbers" /><span></span></label>
+          </div>
+        </div>
+
+        <div class="setting">
+          <div class="label">
+            <b>Wrap long lines</b>
+            <small>Off, and a long line runs off the side with a scrollbar under it.</small>
+          </div>
+          <div class="control">
+            <label class="toggle"><input type="checkbox" id="wrap" /><span></span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Typing</h2>
+
+        <div class="setting">
+          <div class="label">
+            <b>Keep the indent on a new line</b>
+            <small>Press Enter and the next line starts where the last one did.</small>
+          </div>
+          <div class="control">
+            <label class="toggle"><input type="checkbox" id="auto-indent" /><span></span></label>
+          </div>
+        </div>
+
+        <div class="setting">
+          <div class="label">
+            <b>Close brackets and quotes</b>
+            <small>Type one and the other appears. Type it around a selection and it wraps it.</small>
+          </div>
+          <div class="control">
+            <label class="toggle"><input type="checkbox" id="auto-close" /><span></span></label>
+          </div>
+        </div>
+
+        <div class="setting">
+          <div class="label">
+            <b>Indent size</b>
+            <small>How far Tab moves the text.</small>
+          </div>
+          <div class="control">
+            <input type="range" id="tab-size" min="1" max="8" step="1" />
+            <span class="value" id="tab-size-value"></span>
+          </div>
+        </div>
+
+        <!-- Smart Mode only: the difference matters to some files and to no
+             ordinary person. -->
+        <div class="setting smart-only" id="use-tabs-row">
+          <div class="label">
+            <b>Indent with tab characters</b>
+            <small>Off means spaces. Some files care a great deal which.</small>
+          </div>
+          <div class="control">
+            <label class="toggle"><input type="checkbox" id="use-tabs" /><span></span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Files</h2>
+
+        <div class="setting">
+          <div class="label">
+            <b>Open what was open</b>
+            <small>Your sheets come back next time, unsaved work included.</small>
+          </div>
+          <div class="control">
+            <label class="toggle"><input type="checkbox" id="restore-session" /><span></span></label>
+          </div>
+        </div>
+
+        <div class="setting">
+          <div class="label">
+            <b>Save as you go</b>
+            <small>Sheets that already live in a file are written a moment after you
+              stop typing. A sheet that has never been saved is left alone, since
+              autosave should never have to ask where to put something.</small>
+          </div>
+          <div class="control">
+            <label class="toggle"><input type="checkbox" id="autosave" /><span></span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card highlight">
+        <h2>Smart Mode</h2>
+        <div class="setting">
+          <div class="label">
+            <b>Show the technical layer</b>
+            <small id="smart-note"></small>
+          </div>
+          <div class="control">
+            <label class="toggle"><input type="checkbox" id="smart-mode" /><span></span></label>
+          </div>
+        </div>
+        <div class="smart-list" id="smart-list"></div>
+      </section>
+
+      <section class="card">
+        <h2>Plugins</h2>
+        <p class="note">
+          A plugin is a folder with a <code>plugin.json</code> in it. Everything is
+          switched off until you switch it on. Nimbus takes themes and pages from a
+          plugin and will not run its code — there is nowhere in an editor to run it
+          safely, so the answer is no rather than "carefully".
+        </p>
+        <div class="rows" id="plugin-list"></div>
+        <div class="row-buttons">
+          <button class="ghost" id="plugin-folder">Open the plugins folder</button>
+          <button class="ghost" id="plugin-reload">Look again</button>
+        </div>
+        <p class="note problem" id="plugin-problems"></p>
+      </section>
+    </main>
+
+    <script src="../shared/theme.js"></script>
+    <script src="../shared/commands.js"></script>
+    <script src="./settings.js"></script>
+  </body>
+</html>
