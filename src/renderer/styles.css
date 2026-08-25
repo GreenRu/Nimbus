@@ -1,0 +1,318 @@
+/* ============================================================
+   Nimbus - editor UI
+
+   One continuous sky fills the window; the text floats on it as a single
+   rounded card. All controls live in the left column, so there is no toolbar
+   band across the top of the page.
+
+   Nimbus is the rain cloud - the one that actually produces something - so its
+   two palettes are the warm end of the day. Sunset is the light one and the
+   default: the hour there is still enough light to write by. Dusk is the same
+   variables at different values, never a filter: the lamp is on.
+   ============================================================ */
+
+:root {
+  --sky-top: #efa079;
+  --sky-bottom: #f9d6b6;
+
+  /* Fills are deliberately opaque: cloud lobes overlap each other, and any
+     alpha would compound where they cross and expose the seams. */
+  --cloud: #fffaf5;
+  --cloud-idle: #f6ddc9;
+  --cloud-hover: #fff2e6;
+  --cloud-bright: #ffffff;
+
+  --text: #4a2b33;
+  --text-dim: #8f6b64;
+  --text-on-sky: #5b3229;
+  --field: #fffaf5;
+  --field-line: rgba(74, 43, 51, 0.12);
+  --panel: rgba(255, 250, 245, 0.76);
+  --panel-line: rgba(255, 255, 255, 0.62);
+  --hover: rgba(255, 255, 255, 0.55);
+  --accent: #d4663c;
+  --danger: #c2453f;
+  --stage: #fff6ee;
+  --bubble: #fffaf5;
+  --scroll-thumb: rgba(255, 255, 255, 0.6);
+  --shadow-card: 0 10px 30px rgba(96, 48, 32, 0.20);
+
+  /* Nimbus's own: the text itself, and the rule down the side of it. */
+  --ink: #3b2129;
+  --ink-dim: #9a7a72;
+  --gutter-line: rgba(74, 43, 51, 0.10);
+  --caret: #d4663c;
+  --selection: rgba(212, 102, 60, 0.22);
+
+  --titlestrip-h: 40px;
+  --page-radius: 16px;
+  --gutter: 10px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Overshoots, then settles: the jelly. Use it for anything that appears,
+     grows, or is pressed. */
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-big: cubic-bezier(0.22, 1.7, 0.36, 1);
+  --t-fast: 160ms;
+  --t-mid: 260ms;
+  --t-slow: 380ms;
+
+  --ui-font: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --brand-font: "Comfortaa", var(--ui-font);
+  --text-font: "Cascadia Code", "Consolas", ui-monospace, monospace;
+}
+
+[data-theme="dusk"] {
+  --sky-top: #2b2340;
+  --sky-bottom: #120e1c;
+
+  --cloud: #4a3f66;
+  --cloud-idle: #2f2745;
+  --cloud-hover: #3a3155;
+  --cloud-bright: #5d4f7d;
+
+  --text: #ede6f6;
+  --text-dim: #a294bd;
+  --text-on-sky: #d6cbe8;
+  --field: #221b33;
+  --field-line: rgba(255, 255, 255, 0.10);
+  --panel: rgba(255, 255, 255, 0.07);
+  --panel-line: rgba(255, 255, 255, 0.10);
+  --hover: rgba(255, 255, 255, 0.10);
+  /* The last of the sunset, kept as the accent so dusk reads as the same
+     evening rather than as a different program. */
+  --accent: #e0885f;
+  --danger: #ff6b6b;
+  --stage: #171226;
+  --bubble: #241d38;
+  --scroll-thumb: rgba(255, 255, 255, 0.16);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.40);
+
+  --ink: #ece5f7;
+  --ink-dim: #8577a3;
+  --gutter-line: rgba(255, 255, 255, 0.10);
+  --caret: #e0885f;
+  --selection: rgba(224, 136, 95, 0.26);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--ui-font);
+  color: var(--text);
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+  transition: background var(--t-slow) var(--ease), color var(--t-slow) var(--ease);
+}
+
+body {
+  display: flex;
+  padding-top: var(--titlestrip-h);
+}
+
+button {
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ---------- the sidebar ---------- */
+
+.sidebar {
+  flex: 0 0 auto;
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 0 10px;
+}
+
+.sidebar-head { padding: 4px 14px 10px; }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--brand-font);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-on-sky);
+}
+
+.brand-mark { width: 22px; height: 22px; fill: var(--cloud); }
+
+.tool-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px 10px;
+}
+
+.tool-btn {
+  width: 28px;
+  height: 28px;
+  padding: 5px;
+  border-radius: 50%;
+  color: var(--text-on-sky);
+  opacity: 0.85;
+  transition: background var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease),
+    transform var(--t-mid) var(--spring);
+}
+
+.tool-btn svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tool-btn:hover { background: var(--hover); opacity: 1; transform: scale(1.14); }
+.tool-btn:active { transform: scale(0.9); }
+.tool-gap { flex: 1 1 auto; }
+
+/* The open document, as a cloud - the same silhouette the whole family uses.
+
+   The list scrolls, so it clips: the top padding is the room the lobes rise
+   into. Measured across forty generated shapes, the worst reaches 9px above the
+   card, so 14px leaves a margin without leaving a gap anyone would notice. */
+.sheet-list { flex: 1 1 auto; min-height: 0; padding: 14px 10px 8px; overflow-y: auto; }
+
+.sheet {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 34px;
+  margin-bottom: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--cloud-idle);
+  color: var(--text);
+  text-align: left;
+  box-shadow: var(--shadow-card);
+  animation: cloud-in var(--t-slow) var(--spring-big) both;
+  transition: background var(--t-fast) var(--ease);
+}
+
+.sheet.on { background: var(--cloud); }
+.sheet:hover { background: var(--cloud-hover); }
+
+.sheet-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 550;
+}
+
+/* Unsaved work, said quietly: a drop still to fall. */
+.sheet-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease);
+}
+
+.sheet.dirty .sheet-dot { opacity: 1; }
+
+.lobe {
+  position: absolute;
+  border-radius: 999px;
+  background: inherit;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.sheet > *:not(.lobe) { position: relative; z-index: 1; }
+
+@keyframes cloud-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.foot {
+  flex: 0 0 auto;
+  padding: 6px 16px 0;
+  font-size: 11.5px;
+  color: var(--text-on-sky);
+  opacity: 0.75;
+}
+
+/* ---------- the page ---------- */
+
+.main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding-right: var(--gutter);
+  padding-bottom: var(--gutter);
+}
+
+.stage {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  border-radius: var(--page-radius);
+  background: var(--stage);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: background var(--t-slow) var(--ease);
+}
+
+/* The line numbers, on their own rule. */
+.rule {
+  flex: 0 0 auto;
+  padding: 18px 10px 18px 18px;
+  border-right: 1px solid var(--gutter-line);
+  color: var(--ink-dim);
+  font-family: var(--text-font);
+  font-size: 13px;
+  line-height: 1.65;
+  text-align: right;
+  user-select: none;
+  overflow: hidden;
+}
+
+.paper {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 18px 22px;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: none;
+  color: var(--ink);
+  caret-color: var(--caret);
+  font-family: var(--text-font);
+  font-size: 13px;
+  line-height: 1.65;
+  tab-size: 2;
+  overflow-y: auto;
+}
+
+.paper::selection { background: var(--selection); }
+
+.paper::-webkit-scrollbar { width: 10px; }
+.paper::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--gutter-line); }
+
+/* ---------- the status strip ---------- */
+
+.status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 28px;
+  padding: 0 6px 0 16px;
+  font-size: 11.5px;
+  color: var(--text-on-sky);
+  opacity: 0.85;
+}
+
+.status-gap { flex: 1 1 auto; }
+.status b { font-weight: 600; }
