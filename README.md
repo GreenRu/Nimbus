@@ -61,9 +61,16 @@ npm start
 ```
 
 ```bash
+npm run shortcut    # a desktop shortcut, no packaging needed
 npm run icon        # redraw assets/icon.ico from the palette
 npm run package     # a folder under dist/
 ```
+
+The shortcut launches Nimbus through the stock `electron.exe` in `node_modules`
+rather than a packaged build. Windows 11's Smart App Control blocks executables
+that are both unsigned and unknown to its reputation graph — a freshly packaged
+build is exactly that, while the stock binary's hash is on millions of machines.
+No packaging, no signing, and no security setting weakened.
 
 ## Layout
 
