@@ -187,6 +187,18 @@ the program's own runtime executes. They live outside the repository; Stratus's
 | `sheetstest.js` | 20 — closing and dragging sheets, with a real mouse as well as a dispatched one |
 | `rulecheck.js` | 5 — the numbers keeping step with the lines |
 
+## Icons
+
+From [css.gg](https://css.gg) by Astrit, tag `2.1.1`, under the MIT licence. The
+set is shared across the family and lives in
+[Ozone/icons](https://github.com/GreenRu/Ozone/tree/main/icons); `src/shared/icons.js`
+here is generated from it and committed, so this repository stands on its own.
+
+Later css.gg releases are licensed for non-commercial use only, which cannot
+ship in a GPL program - hence the pinned version.
+
+The program's own cloud mark is not from the set and is drawn by hand.
+
 ## Licence
 
 GPL-3.0-or-later.

@@ -101,9 +101,7 @@ function makeSheet({ name = 'untitled', path = '', text = '', encoding = 'utf8',
 
 const isDirty = (sheet) => sheet && sheet.text !== sheet.saved;
 
-const CLOSE_ICON =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" ' +
-  'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const CLOSE_ICON = window.Icons.svg('close');
 
 /**
  * What the strip would look like right now.
@@ -1343,6 +1341,9 @@ function paintTheme(name) {
   const other = state.themes.find((t) => t !== name) || 'dusk';
   el.theme.title = other.charAt(0).toUpperCase() + other.slice(1);
   el.theme.setAttribute('aria-label', `Switch to ${other}`);
+  // The button shows the hour it would take you to, not the one you are in.
+  el.theme.replaceChildren();
+  el.theme.insertAdjacentHTML('afterbegin', window.Icons.svg(other === 'dusk' ? 'moon' : 'sun'));
 }
 
 el.theme.addEventListener('click', async () => {
@@ -1567,5 +1568,8 @@ api.files.onChanged(({ path }) => {
   if (!sheet) return;
   toast(`${sheet.name} has changed on disk. Reload it from the command list.`);
 });
+
+// Every button that named an icon gets one, before anything else is drawn.
+window.Icons.paint(document);
 
 start();
