@@ -264,15 +264,25 @@ button {
   transition: background var(--t-slow) var(--ease);
 }
 
-/* The line numbers, on their own rule. */
+/* The line numbers, on their own rule.
+
+   `white-space: pre` is not decoration: the numbers are one string of them
+   separated by newlines, and without it they collapse to spaces and the whole
+   column runs across the top of the page in a single line.
+
+   Everything about the text here has to match .paper exactly - family, size,
+   line-height, padding-top - or the numbers drift out of step with the lines
+   they are numbering, a little further with every line. */
 .rule {
   flex: 0 0 auto;
+  min-width: 3ch;
   padding: 18px 10px 18px 18px;
   border-right: 1px solid var(--gutter-line);
   color: var(--ink-dim);
   font-family: var(--text-font);
   font-size: 13px;
   line-height: 1.65;
+  white-space: pre;
   text-align: right;
   user-select: none;
   overflow: hidden;

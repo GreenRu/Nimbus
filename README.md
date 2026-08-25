@@ -104,7 +104,7 @@ Honestly, so nobody goes looking:
 - **No syntax highlighting, find, or undo history beyond the textarea's own.**
 - **No `nimbus://` internal pages**, so no settings page — the theme button is
   the only preference with a control.
-- **Only one test suite.** 22 assertions covering the window, both themes, the
+- **Two test suites.** 30 assertions covering the window, both themes, the
   sheet strip, the rule and the word count, and that the bridge exposes exactly
   three things. Suites live outside the repository, as they do in Stratus, whose
   `docs/TESTING.md` is the pattern.
